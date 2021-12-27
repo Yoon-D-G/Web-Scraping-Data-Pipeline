@@ -6,12 +6,15 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
+import re
 
 LANCASHIRE_ARCHIVE_WEBSITE = 'https://archivecat.lancashire.gov.uk/calmview/'
 
 class Scraper:
+
     def __init__(self):
         self.html_dictionary = {}
+        self.all_data = []
 
     def request_html(self, url):
         request = requests.get(url)
@@ -30,15 +33,15 @@ class Scraper:
     def click_to_next_page(self, url, selection):
         self.driver = webdriver.Firefox()
         self.driver.get(url)
-        self.complete_search_bar(self.driver.find_element_by_id(selection))
+        self.automatically_enter_search_bar(self.driver.find_element_by_id(selection))
 
-    def complete_search_bar(self, search_bar):
+    def automatically_enter_search_bar(self, search_bar):
         search_bar.clear()
         search_bar.send_keys('wcw')
         search_bar.send_keys(Keys.RETURN)
-        self.wait_and_return_page_url()
+        self.wait_and_set_page_url()
 
-    def wait_and_return_page_url(self):
+    def wait_and_set_page_url(self):
         wait = WebDriverWait(self.driver, 10)
         wait.until(EC.title_contains('Search Results'))
         url = self.driver.current_url
@@ -56,13 +59,38 @@ class Scraper:
     def get_page_data(self):
         for url in self.get_all_page_links(self.url):
             data_page_html = self.html_get(url)
-            self.get_data_from_table(data_page_html)
+            self.get_table_from_html(data_page_html)
 
-    def get_data_from_table(self,data_page_html):
+    def get_table_from_html(self,data_page_html):
         table_data = data_page_html.find_all('tr')
         for table_row in table_data:
-            print(table_row) 
-        
+            self.get_data_from_table(table_row)
+
+    def get_data_from_table(self, table_row):
+        columns = table_row.find_all('td')
+        columns = [element.text.strip() for element in columns]
+        if columns[0] != 'Description':
+            self.all_data.append(columns)
+        else:
+            self.all_data.append(self.extract_testator_data(columns[1]))
+
+    def extract_testator_data(self, testator_data):
+        testator_data_list = []
+        testator_tuple = self.extract_testator_data_regex(testator_data, '(.*?)Occupation')
+        testator_data_list.append(testator_tuple[1])
+        testator_tuple = self.extract_testator_data_regex(testator_tuple[0], '(.*?)Place')
+        testator_data_list.append(testator_tuple[1])
+        testator_tuple = self.extract_testator_data_regex(testator_tuple[0], '(.*?)Contents')
+        testator_data_list.append(testator_tuple[1])
+        return testator_data_list
+
+    def extract_testator_data_regex(self, testator_data, regex_pattern):
+        regex = re.compile(regex_pattern)
+        output = regex.findall(testator_data)
+        if output:
+            testator_data = testator_data.lstrip(str(output))
+        return testator_data, output
+   
 if __name__ == '__main__':
     scraper = Scraper()
     link = scraper.advanced_search_links(LANCASHIRE_ARCHIVE_WEBSITE, 'a', 'href', 'advanced')
@@ -70,6 +98,7 @@ if __name__ == '__main__':
     selection = scraper.advanced_search_links(url, 'input', 'id', 'SearchText_AltRef')
     scraper.click_to_next_page(url, selection)
     scraper.get_page_data()
+    print(scraper.all_data)
 
 
 
