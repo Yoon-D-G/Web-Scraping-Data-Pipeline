@@ -5,7 +5,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import pandas
+import pandas as pd
 
 LANCASHIRE_ARCHIVE_WEBSITE = 'https://archivecat.lancashire.gov.uk/calmview/'
 
@@ -46,7 +46,23 @@ class Scraper:
 
     def create_full_url(self, link):
         if link != None:
-            return LANCASHIRE_ARCHIVE_WEBSITE + link.lstrip("document.location='./")     
+            return LANCASHIRE_ARCHIVE_WEBSITE + link.lstrip("document.location='./") 
+
+    def get_page_data(self):
+        counter = 0
+        data_list = []
+        for url in scraper.get_all_page_links(first_page_proper_url):
+            if counter == 2:
+                break
+            data_page_html = scraper.html_get(url)
+            table_data = data_page_html.find_all('tr')
+            individual_testator_data = []
+            for table_row in table_data:
+                for entry in table_row.find_all('td'):
+                    individual_testator_data.append([item.text.strip() for item in entry])
+            counter += 1
+            data_list.append(individual_testator_data)
+        print(data_list)    
         
 if __name__ == '__main__':
     scraper = Scraper()
@@ -54,25 +70,10 @@ if __name__ == '__main__':
     url = LANCASHIRE_ARCHIVE_WEBSITE + link
     selection = scraper.advanced_search_links(url, 'input', 'id', 'SearchText_AltRef')
     first_page_proper_url = scraper.click_to_next_page(url, selection)
-    counter = 0
-    data_dictionary = {}
-    for url in scraper.get_all_page_links(first_page_proper_url):
-        if counter == 2:
-            break
-        data_page_html = scraper.html_get(url)
-        table_data = data_page_html.find_all('tr')
-        for table_row in table_data:
-            table_column = table_row.find_all('td')
-            table_column = [table_entry.text.strip() for table_entry in table_column]
-            data_dictionary[]
-            data_dictionary[table_column[1]] = table_column[1]
-            # data.append([table_entry for table_entry in table_column if table_entry])
-        counter += 1
-    print(data_dictionary)
+    scraper.get_page_data()
 
 
-    # with open('html_dictionary_first_20', 'w') as file:
-    #     file.write(str(scraper.html_dictionary))
+
     
     
     
