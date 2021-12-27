@@ -1554,7 +1554,7 @@ min-height: 18px;
 <div class="PageHeader">
 </div>
 <div class="MiscBtn">
-<input class="refinebutton" onclick="window.location = '/calmview/Advanced.aspx?src=CalmView.Catalog'" type="button" value="Refine Search"/>
+<input class="refinebutton"onclick="window.location = '/calmview/Advanced.aspx?src=CalmView.Catalog'" type="button" value="Refine Search"/>
 </div>
 <div class="PagerBarControl" id="ctl00_main_TopPager">
 <ul><li class="First" style="visibility:hidden;"><span class="First"> </span><a href="/calmview/Overview.aspx?src=CalmView.Catalog&amp;r=((AltRefNo%3d%27wcw%27))&amp;action=5c9524b9" onclick="javascript:__doPostBack('ctl00$main$TopPager$ctl08','');return false;">First</a></li><li class="Previous" style="visibility:hidden;"><span class="Previous"> </span><a href="/calmview/Overview.aspx?src=CalmView.Catalog&amp;r=((AltRefNo%3d%27wcw%27))&amp;action=b9edb025" onclick="javascript:__doPostBack('ctl00$main$TopPager$ctl11','');return false;">Previous</a></li><li class="Current">1 to 20 of 167988</li><li class="PageSizes"><label for="ctl00_main_TopPager_ctl15" style="visibility: hidden;display:none;">Items per page:</label><select aria-label="Items per page:" class="PageSizes" id="ctl00_main_TopPager_ctl15" name="ctl00$main$TopPager$ctl15">
