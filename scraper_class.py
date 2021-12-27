@@ -28,16 +28,21 @@ class Scraper:
                 return link
 
     def click_to_next_page(self, url, selection):
-        driver = webdriver.Firefox()
-        driver.get(url)
-        search_bar = driver.find_element_by_id(selection)
+        self.driver = webdriver.Firefox()
+        self.driver.get(url)
+        self.complete_search_bar(self.driver.find_element_by_id(selection))
+
+    def complete_search_bar(self, search_bar):
         search_bar.clear()
         search_bar.send_keys('wcw')
         search_bar.send_keys(Keys.RETURN)
-        wait = WebDriverWait(driver, 10)
+        self.wait_and_return_page_url()
+
+    def wait_and_return_page_url(self):
+        wait = WebDriverWait(self.driver, 10)
         wait.until(EC.title_contains('Search Results'))
-        url = driver.current_url
-        return url  
+        url = self.driver.current_url
+        self.url = url  
 
     def get_all_page_links(self, url):
         for link in [link.get('onclick') for link in self.html_get(url).find_all('tr')]:
@@ -49,27 +54,21 @@ class Scraper:
             return LANCASHIRE_ARCHIVE_WEBSITE + link.lstrip("document.location='./") 
 
     def get_page_data(self):
-        counter = 0
-        data_list = []
-        for url in scraper.get_all_page_links(first_page_proper_url):
-            if counter == 2:
-                break
-            data_page_html = scraper.html_get(url)
-            table_data = data_page_html.find_all('tr')
-            individual_testator_data = []
-            for table_row in table_data:
-                for entry in table_row.find_all('td'):
-                    individual_testator_data.append([item.text.strip() for item in entry])
-            counter += 1
-            data_list.append(individual_testator_data)
-        print(data_list)    
+        for url in self.get_all_page_links(self.url):
+            data_page_html = self.html_get(url)
+            self.get_data_from_table(data_page_html)
+
+    def get_data_from_table(self,data_page_html):
+        table_data = data_page_html.find_all('tr')
+        for table_row in table_data:
+            print(table_row) 
         
 if __name__ == '__main__':
     scraper = Scraper()
     link = scraper.advanced_search_links(LANCASHIRE_ARCHIVE_WEBSITE, 'a', 'href', 'advanced')
     url = LANCASHIRE_ARCHIVE_WEBSITE + link
     selection = scraper.advanced_search_links(url, 'input', 'id', 'SearchText_AltRef')
-    first_page_proper_url = scraper.click_to_next_page(url, selection)
+    scraper.click_to_next_page(url, selection)
     scraper.get_page_data()
 
 
