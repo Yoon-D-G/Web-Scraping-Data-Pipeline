@@ -68,7 +68,7 @@ class Scraper:
     def get_page_data(self):
         counter = 0
         for url in self.get_all_page_links(self.url):
-            if counter == 1:
+            if counter == 20:
                 break
             data_page_html = self.html_get(url)
             self.get_table_from_html(data_page_html)
@@ -116,46 +116,40 @@ class Scraper:
         return testator_data, output
 
     def create_appendable_data(self, flat_list):
-        print(flat_list)
-
-
-        doc_ref = self.find_doc_ref(flat_list)
-        title = self.find_title(flat_list)
-        name = self.find_name(flat_list)
-        occupation = self.find_occupation(flat_list)
-        place = self.find_place(flat_list)
-        date = self.find_date(flat_list)
-        contents = self.find_contents(flat_list)
+        doc_ref = self.find_data_type_1(flat_list, 'Document reference')
+        title = self.find_data_type_1(flat_list, 'Title')
+        name = self.find_data_type_2(flat_list, "Testator's name")
+        occupation = self.find_data_type_2(flat_list, 'Occupation/status')
+        place = self.find_data_type_2(flat_list, 'Place')
+        date = self.find_data_type_1(flat_list, 'Date')
+        contents = self.find_data_type_2(flat_list, 'Contents')
         self.append_data_to_dataframe(
-            doc_ref,
-            title,
-            name,
-            occupation,
-            place,
-            date,
-            contents
-        )
+            doc_ref=doc_ref,
+            title=title,
+            name=name,
+            occupation=occupation,
+            place=place,
+            date=date,
+            contents=contents)
 
-    def find_doc_ref(self, flat_list):
-        pass
+    def find_data_type_1(self, flat_list, data_item):
+        try:
+            if data_item in flat_list:
+                return flat_list[flat_list.index(data_item) + 1]
+            else:
+                return None
+        except (IndexError, AttributeError, TypeError, Exception) as err:
+            print(err, data_item)
+            return None
 
-    def find_title(self, flat_list):
-        pass
-
-    def find_name(self, flat_list):
-        pass
-
-    def find_occupation(self, flat_list):
-        pass
-
-    def find_place(self, flat_list):
-        pass
-
-    def find_date(self, flat_list):
-        pass
-
-    def find_contents(self, flat_list):
-        pass
+    def find_data_type_2(self, flat_list, data_item):
+        try:
+            for item in flat_list:
+                if data_item in item:
+                    return item.split(':')[1].strip()
+        except (IndexError, AttributeError, TypeError, Exception) as err:
+            print(err, data_item)  
+            return None     
 
     def append_data_to_dataframe(
         self, 
@@ -184,6 +178,8 @@ if __name__ == '__main__':
     selection = scraper.advanced_search_links(url, 'input', 'id', 'SearchText_AltRef')
     scraper.click_to_next_page(url, selection)
     scraper.get_page_data()
+    print(scraper.dataframe)
+
 
 
     

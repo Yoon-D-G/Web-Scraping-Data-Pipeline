@@ -50,7 +50,7 @@ from selenium.webdriver.common.keys import Keys
 
 # # doc_ref, title, name, occupation, place, date, contents
 
-data = [['Document reference', 'WCW/Supra/C554A/1'], ['Title', 'Archdeaconry of Chester Probate Records'], [["Testator's name: William Abbot"], ['Occupation/status: timber merchant'], ('Contents: will, codicil, wrapper', ['Place: Liverpool'])], ['Date', '04 Jul 1795'], ['Level', 'Item'], ['Access', 'This material is available to view at Lancashire Archives. See our website or contact us for more details.'], ['Access status', 'Open']]
+# data = [['Document reference', 'WCW/Supra/C554A/1'], ['Title', 'Archdeaconry of Chester Probate Records'], [["Testator's name: William Abbot"], ['Occupation/status: timber merchant'], ('Contents: will, codicil, wrapper', ['Place: Liverpool'])], ['Date', '04 Jul 1795'], ['Level', 'Item'], ['Access', 'This material is available to view at Lancashire Archives. See our website or contact us for more details.'], ['Access status', 'Open']]
 
 # for d in data:
 #     for i in d:
@@ -65,12 +65,23 @@ data = [['Document reference', 'WCW/Supra/C554A/1'], ['Title', 'Archdeaconry of 
 # recurse(data)
 
 
-def flatten(data):
-    for x in data:
-        if (isinstance(x, list) or isinstance(x, tuple)) and not isinstance(x, str):
-            yield from flatten(x)
-        else:
-            yield x
+# def flatten(data):
+#     for x in data:
+#         if (isinstance(x, list) or isinstance(x, tuple)) and not isinstance(x, str):
+#             yield from flatten(x)
+#         else:
+#             yield x
 
-flat_list = [i for i in flatten(data)]
-print(flat_list)
+# flat_list = [i for i in flatten(data)]
+# print(flat_list)
+
+data = ['Document reference', 'WCW/Supra/C554A/1', 'Title', 'Archdeaconry of Chester Probate Records', "Testator's name: William Abbot", 'Occupation/status: timber merchant', 'Contents: will, codicil, wrapper', 'Place: Liverpool', 'Date', '04 Jul 1795', 'Level', 'Item', 'Access', 'This material is available to view at Lancashire Archives. See our website or contact us for more details.', 'Access status', 'Open']
+
+# if 'Document reference' in data:
+#     print(data[data.index('Document reference') + 1]) 
+
+# for i in data:
+#     if 'Occupation' in i:
+#         print(i.split(':')[1].strip())
+
+print([1, 2, 3].split())
