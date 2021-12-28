@@ -15,6 +15,15 @@ class Scraper:
     def __init__(self):
         self.html_dictionary = {}
         self.all_data = []
+        self.dataframe = pd.DataFrame(columns=[
+            'Document Reference',
+            'Title', 
+            "Testator's name",
+            'Occupation/status',
+            'Place',
+            'Date',
+            'Contents'
+        ])
 
     def request_html(self, url):
         request = requests.get(url)
@@ -57,22 +66,26 @@ class Scraper:
             return LANCASHIRE_ARCHIVE_WEBSITE + link.lstrip("document.location='./") 
 
     def get_page_data(self):
+        counter = 0
         for url in self.get_all_page_links(self.url):
+            if counter == 1:
+                break
             data_page_html = self.html_get(url)
             self.get_table_from_html(data_page_html)
+            counter += 1
 
     def get_table_from_html(self,data_page_html):
         table_data = data_page_html.find_all('tr')
-        for table_row in table_data:
-            self.get_data_from_table(table_row)
-
+        data = [self.get_data_from_table(table_row) for table_row in table_data]
+        self.extract_data_for_dataframe(data)
+            
     def get_data_from_table(self, table_row):
         columns = table_row.find_all('td')
         columns = [element.text.strip() for element in columns]
         if columns[0] != 'Description':
-            self.all_data.append(columns)
+            return columns
         else:
-            self.all_data.append(self.extract_testator_data(columns[1]))
+            return self.extract_testator_data(columns[1])
 
     def extract_testator_data(self, testator_data):
         testator_data_list = []
@@ -81,7 +94,7 @@ class Scraper:
         testator_tuple = self.extract_testator_data_regex(testator_tuple[0], '(.*?)Place')
         testator_data_list.append(testator_tuple[1])
         testator_tuple = self.extract_testator_data_regex(testator_tuple[0], '(.*?)Contents')
-        testator_data_list.append(testator_tuple[1])
+        testator_data_list.append(testator_tuple)
         return testator_data_list
 
     def extract_testator_data_regex(self, testator_data, regex_pattern):
@@ -90,7 +103,28 @@ class Scraper:
         if output:
             testator_data = testator_data.lstrip(str(output))
         return testator_data, output
-   
+
+    def extract_data_for_dataframe(self, data):
+        self.append_data_to_dataframe(
+            doc_ref=data[0][1], 
+            title=data[1][1],
+            name=data[2][0][0].split(':')[1].strip(), 
+            occupation=data[2][1][0].split(':')[1].strip(),
+            contents=data[2][2][0].split(':')[1].strip(), 
+            place=data[2][2][1][0].split(':')[1].strip(),
+            date=data[3][1])
+
+    def append_data_to_dataframe(self, doc_ref, title, name, occupation, place, date, contents):
+        self.dataframe = self.dataframe.append({
+            'Document Reference': doc_ref,
+            'Title': title, 
+            "Testator's name": name,
+            'Occupation/status': occupation,
+            'Place': place,
+            'Date': date,
+            'Contents': contents
+        }, ignore_index=True)  
+
 if __name__ == '__main__':
     scraper = Scraper()
     link = scraper.advanced_search_links(LANCASHIRE_ARCHIVE_WEBSITE, 'a', 'href', 'advanced')
@@ -98,8 +132,7 @@ if __name__ == '__main__':
     selection = scraper.advanced_search_links(url, 'input', 'id', 'SearchText_AltRef')
     scraper.click_to_next_page(url, selection)
     scraper.get_page_data()
-    print(scraper.all_data)
-
+    print(scraper.dataframe)
 
 
     

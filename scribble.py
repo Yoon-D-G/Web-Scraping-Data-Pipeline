@@ -5,16 +5,47 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
 
 
-# # request = requests.get('https://archivecat.lancashire.gov.uk/calmview/advanced.aspx?src=CalmView.Catalog')
-# # soup = BeautifulSoup(request.content, 'html.parser')
-# driver = webdriver.Firefox()
-# driver.get('https://archivecat.lancashire.gov.uk/calmview/advanced.aspx?src=CalmView.Catalog')
-# search_bar = driver.find_element_by_id("ctl00_main_DSCoverySearch1_ctl00_SearchText_AltRefNo_default")
-# search_bar.clear()
-# search_bar.send_keys("wcw")
-# search_bar.send_keys(Keys.RETURN)
+# # # request = requests.get('https://archivecat.lancashire.gov.uk/calmview/advanced.aspx?src=CalmView.Catalog')
+# # # soup = BeautifulSoup(request.content, 'html.parser')
+# # driver = webdriver.Firefox()
+# # driver.get('https://archivecat.lancashire.gov.uk/calmview/advanced.aspx?src=CalmView.Catalog')
+# # search_bar = driver.find_element_by_id("ctl00_main_DSCoverySearch1_ctl00_SearchText_AltRefNo_default")
+# # search_bar.clear()
+# # search_bar.send_keys("wcw")
+# # search_bar.send_keys(Keys.RETURN)
 
-# # with open('scribble', 'w') as file:
-# #     file.write(str(soup))
+# # # with open('scribble', 'w') as file:
+# # #     file.write(str(soup))
 
-print('ewen')
+# print('ewen')
+
+# self.dataframe = pd.DataFrame(columns=[
+#     'Document Reference',
+#     'Title', 
+#     "Testator's name",
+#     'Occupation/status',
+#     'Place',
+#     'Contents'
+# ])
+
+# def append_data_to_dataframe(self, doc_ref, title, name, occupation, place, contents):
+#     self.dataframe.append({
+#         'Document Reference': doc_ref,
+#         'Title': title, 
+#         "Testator's name": name,
+#         'Occupation/status': occupation,
+#         'Place': place,
+#         'Contents': contents
+#     }, ignore_index=True) 
+
+data_list = [['Document reference', 'WCW/Supra/C554A/1'], ['Title', 'Archdeaconry of Chester Probate Records'], [["Testator's name: William Abbot"], ['Occupation/status: timber merchant'], ('Contents: will, codicil, wrapper', ['Place: Liverpool'])], ['Date', '04 Jul 1795'], ['Level', 'Item'], ['Access', 'This material is available to view at Lancashire Archives. See our website or contact us for more details.'], ['Access status', 'Open']]
+
+print(data_list[0][1] + '\n' + 
+data_list[1][1] + '\n' +
+data_list[2][0][0].split(':')[1].strip() + '\n' + 
+data_list[2][1][0].split(':')[1].strip() + '\n' +
+data_list[2][2][0].split(':')[1].strip() + '\n' + 
+data_list[2][2][1][0].split(':')[1].strip() + '\n' +
+data_list[3][1])
+
+# doc_ref, title, name, occupation, place, date, contents
