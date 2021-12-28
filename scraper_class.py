@@ -1,3 +1,4 @@
+from pandas.core.frame import DataFrame
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -23,7 +24,7 @@ class Scraper:
             'Place',
             'Date',
             'Contents'
-        ])
+        ]) 
 
     def request_html(self, url):
         request = requests.get(url)
@@ -66,13 +67,13 @@ class Scraper:
             return LANCASHIRE_ARCHIVE_WEBSITE + link.lstrip("document.location='./") 
 
     def get_page_data(self):
-        counter = 0
+        # counter = 0
         for url in self.get_all_page_links(self.url):
-            if counter == 20:
-                break
+            # if counter == 1:
+            #     break
             data_page_html = self.html_get(url)
             self.get_table_from_html(data_page_html)
-            counter += 1
+            # counter += 1
 
     def get_table_from_html(self,data_page_html):
         table_data = data_page_html.find_all('tr')
@@ -121,7 +122,7 @@ class Scraper:
         name = self.find_data_type_2(flat_list, "Testator's name")
         occupation = self.find_data_type_2(flat_list, 'Occupation/status')
         place = self.find_data_type_2(flat_list, 'Place')
-        date = self.find_data_type_1(flat_list, 'Date')
+        date = self.find_and_standardise_date(flat_list, 'Date')
         contents = self.find_data_type_2(flat_list, 'Contents')
         self.append_data_to_dataframe(
             doc_ref=doc_ref,
@@ -131,6 +132,11 @@ class Scraper:
             place=place,
             date=date,
             contents=contents)
+
+    def find_and_standardise_date(self, flat_list, data_item='Date'):
+        # YYYY-MM-DD
+        return self.find_data_type_1(flat_list, data_item)
+        # print(date)
 
     def find_data_type_1(self, flat_list, data_item):
         try:
@@ -178,6 +184,15 @@ if __name__ == '__main__':
     selection = scraper.advanced_search_links(url, 'input', 'id', 'SearchText_AltRef')
     scraper.click_to_next_page(url, selection)
     scraper.get_page_data()
+    print(scraper.dataframe)
+    counter = 0
+    while True:
+        if counter == 2:
+            break
+        scraper.driver.find_element_by_link_text('Next').click()
+        scraper.wait_and_set_page_url()
+        scraper.get_page_data()
+        counter += 1
     print(scraper.dataframe)
 
 
