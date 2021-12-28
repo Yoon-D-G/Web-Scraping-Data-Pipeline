@@ -77,8 +77,19 @@ class Scraper:
     def get_table_from_html(self,data_page_html):
         table_data = data_page_html.find_all('tr')
         data = [self.get_data_from_table(table_row) for table_row in table_data]
-        self.extract_data_for_dataframe(data)
-            
+        self.flattened_data_list(data)
+
+    def flatten_data_list(self, nested_data):
+        for data in nested_data:
+            if (isinstance(data, list) or isinstance(data, tuple)) and not isinstance(data, str):
+                yield from self.flatten_data_list(data)
+            else:
+                yield data
+
+    def flattened_data_list(self, data):
+        flat_list = [i for i in self.flatten_data_list(data)]
+        self.create_appendable_data(flat_list)
+
     def get_data_from_table(self, table_row):
         columns = table_row.find_all('td')
         columns = [element.text.strip() for element in columns]
@@ -104,17 +115,58 @@ class Scraper:
             testator_data = testator_data.lstrip(str(output))
         return testator_data, output
 
-    def extract_data_for_dataframe(self, data):
-        self.append_data_to_dataframe(
-            doc_ref=data[0][1], 
-            title=data[1][1],
-            name=data[2][0][0].split(':')[1].strip(), 
-            occupation=data[2][1][0].split(':')[1].strip(),
-            contents=data[2][2][0].split(':')[1].strip(), 
-            place=data[2][2][1][0].split(':')[1].strip(),
-            date=data[3][1])
+    def create_appendable_data(self, flat_list):
+        print(flat_list)
 
-    def append_data_to_dataframe(self, doc_ref, title, name, occupation, place, date, contents):
+
+        doc_ref = self.find_doc_ref(flat_list)
+        title = self.find_title(flat_list)
+        name = self.find_name(flat_list)
+        occupation = self.find_occupation(flat_list)
+        place = self.find_place(flat_list)
+        date = self.find_date(flat_list)
+        contents = self.find_contents(flat_list)
+        self.append_data_to_dataframe(
+            doc_ref,
+            title,
+            name,
+            occupation,
+            place,
+            date,
+            contents
+        )
+
+    def find_doc_ref(self, flat_list):
+        pass
+
+    def find_title(self, flat_list):
+        pass
+
+    def find_name(self, flat_list):
+        pass
+
+    def find_occupation(self, flat_list):
+        pass
+
+    def find_place(self, flat_list):
+        pass
+
+    def find_date(self, flat_list):
+        pass
+
+    def find_contents(self, flat_list):
+        pass
+
+    def append_data_to_dataframe(
+        self, 
+        doc_ref='NULL', 
+        title='NULL', 
+        name='NULL', 
+        occupation='NULL', 
+        place='NULL', 
+        date='NULL', 
+        contents='NULL'
+    ):
         self.dataframe = self.dataframe.append({
             'Document Reference': doc_ref,
             'Title': title, 
@@ -132,7 +184,6 @@ if __name__ == '__main__':
     selection = scraper.advanced_search_links(url, 'input', 'id', 'SearchText_AltRef')
     scraper.click_to_next_page(url, selection)
     scraper.get_page_data()
-    print(scraper.dataframe)
 
 
     

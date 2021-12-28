@@ -38,14 +38,39 @@ from selenium.webdriver.common.keys import Keys
 #         'Contents': contents
 #     }, ignore_index=True) 
 
-data_list = [['Document reference', 'WCW/Supra/C554A/1'], ['Title', 'Archdeaconry of Chester Probate Records'], [["Testator's name: William Abbot"], ['Occupation/status: timber merchant'], ('Contents: will, codicil, wrapper', ['Place: Liverpool'])], ['Date', '04 Jul 1795'], ['Level', 'Item'], ['Access', 'This material is available to view at Lancashire Archives. See our website or contact us for more details.'], ['Access status', 'Open']]
+# data_list = [['Document reference', 'WCW/Supra/C554A/1'], ['Title', 'Archdeaconry of Chester Probate Records'], [["Testator's name: William Abbot"], ['Occupation/status: timber merchant'], ('Contents: will, codicil, wrapper', ['Place: Liverpool'])], ['Date', '04 Jul 1795'], ['Level', 'Item'], ['Access', 'This material is available to view at Lancashire Archives. See our website or contact us for more details.'], ['Access status', 'Open']]
 
-print(data_list[0][1] + '\n' + 
-data_list[1][1] + '\n' +
-data_list[2][0][0].split(':')[1].strip() + '\n' + 
-data_list[2][1][0].split(':')[1].strip() + '\n' +
-data_list[2][2][0].split(':')[1].strip() + '\n' + 
-data_list[2][2][1][0].split(':')[1].strip() + '\n' +
-data_list[3][1])
+# print(data_list[0][1] + '\n' + 
+# data_list[1][1] + '\n' +
+# data_list[2][0][0].split(':')[1].strip() + '\n' + 
+# data_list[2][1][0].split(':')[1].strip() + '\n' +
+# data_list[2][2][0].split(':')[1].strip() + '\n' + 
+# data_list[2][2][1][0].split(':')[1].strip() + '\n' +
+# data_list[3][1])
 
-# doc_ref, title, name, occupation, place, date, contents
+# # doc_ref, title, name, occupation, place, date, contents
+
+data = [['Document reference', 'WCW/Supra/C554A/1'], ['Title', 'Archdeaconry of Chester Probate Records'], [["Testator's name: William Abbot"], ['Occupation/status: timber merchant'], ('Contents: will, codicil, wrapper', ['Place: Liverpool'])], ['Date', '04 Jul 1795'], ['Level', 'Item'], ['Access', 'This material is available to view at Lancashire Archives. See our website or contact us for more details.'], ['Access status', 'Open']]
+
+# for d in data:
+#     for i in d:
+#         for j in i:
+#             for k in j:
+#                 if len(k) > 1:
+#                     print(k)
+
+# def recurse(data):
+#     for d in recurse(data):
+#         print(d)
+# recurse(data)
+
+
+def flatten(data):
+    for x in data:
+        if (isinstance(x, list) or isinstance(x, tuple)) and not isinstance(x, str):
+            yield from flatten(x)
+        else:
+            yield x
+
+flat_list = [i for i in flatten(data)]
+print(flat_list)
