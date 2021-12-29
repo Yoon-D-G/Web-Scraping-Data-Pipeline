@@ -14,7 +14,6 @@ ORDINAL_ABBREVIATION_LIST = ['st', 'nd', 'rd', 'th']
 class Scraper:
 
     def __init__(self):
-        self.html_dictionary = {}
         self.all_data = []
         self.dataframe = pd.DataFrame(columns=[
             'Document Reference',
@@ -26,7 +25,6 @@ class Scraper:
             'Contents'
         ]) 
         self.counter = 1
-        self.url = None
 
     def request_html(self, url):
         request = requests.get(url)
@@ -34,8 +32,8 @@ class Scraper:
         return self.content
 
     def html_get(self, url):
-        self.html_dictionary[url] = BeautifulSoup(self.request_html(url), 'html.parser')
-        return self.html_dictionary[url]
+        soup = BeautifulSoup(self.request_html(url), 'html.parser')
+        return soup
 
     def advanced_search_links(self, url, find_all_param, get_param, search_in_link):
         for link in [link.get(get_param) for link in self.html_get(url).find_all(find_all_param)]:
@@ -51,18 +49,18 @@ class Scraper:
         search_bar.clear()
         search_bar.send_keys('wcw')
         search_bar.send_keys(Keys.RETURN)
-        self.wait_and_set_page_url()
+        self.wait_and_get_page_html()
 
-    def wait_and_set_page_url(self):
+    def wait_and_get_page_html(self):
         page_number = self.counter * 20
         WebDriverWait(self.driver, 10).until(lambda x: x.find_element_by_xpath(
             "//*[contains(text(), 'to {} of')]".format(page_number))) 
         url = self.driver.current_url
-        self.url = url 
+        self.html = BeautifulSoup(self.driver.page_source, 'html.parser')
         self.counter += 1 
 
-    def get_all_page_links(self, url):
-        for link in [link.get('onclick') for link in self.html_get(url).find_all('tr')]:
+    def get_all_page_links(self):
+        for link in [link.get('onclick') for link in self.html.find_all('tr')]:
             if link:
                 yield self.create_full_url(link.rstrip("'"))
 
@@ -71,7 +69,7 @@ class Scraper:
             return LANCASHIRE_ARCHIVE_WEBSITE + link.lstrip("document.location='./") 
 
     def get_page_data(self):
-        for url in self.get_all_page_links(self.url):
+        for url in self.get_all_page_links():
             data_page_html = self.html_get(url)
             self.get_table_from_html(data_page_html)
 
@@ -159,7 +157,7 @@ class Scraper:
         print(f'first draft data coming in to find and standardise month {first_draft_date}')
         for month in MONTH_LIST:
             if month in first_draft_date:
-                print(f'month = {month}')
+                month
             else:
                 return None
 
@@ -167,7 +165,7 @@ class Scraper:
         day_finder = re.compile('(\d\d|\d)(\s|[a-zA-Z])')
         days = re.findall(day_finder, first_draft_date)
         if days:
-            print('day = {}'.format([day[0] for day in days]))
+            [day[0] for day in days]
         else:
             return None
 
@@ -213,11 +211,11 @@ class Scraper:
     def run_full_search(self, skip=False):
         counter = 0
         while True:
-            if counter == 3:
+            if counter == 2:
                 break
             self.driver.find_element_by_link_text('Next').click()
             sleep(10)
-            self.wait_and_set_page_url()
+            self.wait_and_get_page_html()
             self.get_page_data()
             counter += 1
         
@@ -227,7 +225,7 @@ if __name__ == '__main__':
     url = LANCASHIRE_ARCHIVE_WEBSITE + link
     selection = scraper.advanced_search_links(url, 'input', 'id', 'SearchText_AltRef')
     scraper.click_to_next_page(url, selection)
-    # scraper.get_page_data()
+    scraper.get_page_data()
     scraper.run_full_search()
     # print(scraper.dataframe)
 
