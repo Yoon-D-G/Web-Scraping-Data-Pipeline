@@ -10,7 +10,7 @@ import pandas as pd
 import re
 
 LANCASHIRE_ARCHIVE_WEBSITE = 'https://archivecat.lancashire.gov.uk/calmview/'
-MONTH_LIST = ['Jan' 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+MONTH_LIST = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 ORDINAL_ABBREVIATION_LIST = ['st', 'nd', 'rd', 'th'] 
 
 class Scraper:
@@ -124,7 +124,7 @@ class Scraper:
         name = self.find_data_type_2(flat_list, "Testator's name")
         occupation = self.find_data_type_2(flat_list, 'Occupation/status')
         place = self.find_data_type_2(flat_list, 'Place')
-        date = self.find_and_standardise_date(flat_list, 'Date')
+        date = self.find_and_standardise_year(flat_list, 'Date')
         contents = self.find_data_type_2(flat_list, 'Contents')
         self.append_data_to_dataframe(
             doc_ref=doc_ref,
@@ -135,14 +135,31 @@ class Scraper:
             date=date,
             contents=contents)
 
-    def find_and_standardise_date(self, flat_list, data_item='Date'):
-        # YYYY-MM-DD
+    def find_and_standardise_year(self, flat_list, data_item='Date'):
         first_draft_date = str(self.find_data_type_1(flat_list, data_item))
         year_finder = re.compile('\d\d\d\d')
         year = re.findall(year_finder, first_draft_date)
         print(year)
+        month = self.find_and_standardise_month(first_draft_date)
+        for year in first_draft_date:
+            first_draft_date_without_years = first_draft_date.replace(year, '')
+        day = self.find_and_standardise_day(first_draft_date_without_years)
+        
 
+        # YYYY-MM-DD
 
+    def find_and_standardise_month(self, data_item='Date'):
+        for month in MONTH_LIST:
+            if month in data_item:
+                print(month)
+
+    def find_and_standardise_day(self, data_item='Date'):
+        day_finder = re.compile('(\d\d|\d)(\s|[a-zA-Z])')
+        days = re.findall(day_finder, data_item)
+        if days:
+            print([day[0] for day in days])
+        else:
+            print(None)
 
     def find_data_type_1(self, flat_list, data_item):
         try:
@@ -201,7 +218,6 @@ if __name__ == '__main__':
     scraper.click_to_next_page(url, selection)
     scraper.get_page_data()
     scraper.run_full_search()
-
     # print(scraper.dataframe)
 
 
