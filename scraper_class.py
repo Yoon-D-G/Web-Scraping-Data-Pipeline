@@ -10,6 +10,8 @@ import pandas as pd
 import re
 
 LANCASHIRE_ARCHIVE_WEBSITE = 'https://archivecat.lancashire.gov.uk/calmview/'
+MONTH_LIST = ['Jan' 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+ORDINAL_ABBREVIATION_LIST = ['st', 'nd', 'rd', 'th'] 
 
 class Scraper:
 
@@ -135,8 +137,12 @@ class Scraper:
 
     def find_and_standardise_date(self, flat_list, data_item='Date'):
         # YYYY-MM-DD
-        return self.find_data_type_1(flat_list, data_item)
-        # print(date)
+        first_draft_date = str(self.find_data_type_1(flat_list, data_item))
+        year_finder = re.compile('\d\d\d\d')
+        year = re.findall(year_finder, first_draft_date)
+        print(year)
+
+
 
     def find_data_type_1(self, flat_list, data_item):
         try:
@@ -177,6 +183,16 @@ class Scraper:
             'Contents': contents
         }, ignore_index=True)  
 
+    def run_full_search(self):
+        counter = 0
+        while True:
+            if counter == 3:
+                break
+            scraper.driver.find_element_by_link_text('Next').click()
+            scraper.wait_and_set_page_url()
+            scraper.get_page_data()
+            counter += 1
+
 if __name__ == '__main__':
     scraper = Scraper()
     link = scraper.advanced_search_links(LANCASHIRE_ARCHIVE_WEBSITE, 'a', 'href', 'advanced')
@@ -184,15 +200,9 @@ if __name__ == '__main__':
     selection = scraper.advanced_search_links(url, 'input', 'id', 'SearchText_AltRef')
     scraper.click_to_next_page(url, selection)
     scraper.get_page_data()
-    counter = 0
-    while True:
-        if counter == 3:
-            break
-        scraper.driver.find_element_by_link_text('Next').click()
-        scraper.wait_and_set_page_url()
-        scraper.get_page_data()
-        counter += 1
-    print(scraper.dataframe)
+    scraper.run_full_search()
+
+    # print(scraper.dataframe)
 
 
 
