@@ -1,13 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 import re
+from time import sleep
 
 LANCASHIRE_ARCHIVE_WEBSITE = 'https://archivecat.lancashire.gov.uk/calmview/'
 MONTH_LIST = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -28,6 +26,7 @@ class Scraper:
             'Contents'
         ]) 
         self.counter = 1
+        self.url = None
 
     def request_html(self, url):
         request = requests.get(url)
@@ -57,8 +56,7 @@ class Scraper:
     def wait_and_set_page_url(self):
         page_number = self.counter * 20
         WebDriverWait(self.driver, 10).until(lambda x: x.find_element_by_xpath(
-            "//*[contains(text(), ' to {} of')]".format(page_number))
-        ) 
+            "//*[contains(text(), 'to {} of')]".format(page_number))) 
         url = self.driver.current_url
         self.url = url 
         self.counter += 1 
@@ -124,7 +122,9 @@ class Scraper:
         name = self.find_data_type_2(flat_list, "Testator's name")
         occupation = self.find_data_type_2(flat_list, 'Occupation/status')
         place = self.find_data_type_2(flat_list, 'Place')
-        date = self.find_and_standardise_year(flat_list, 'Date')
+        date = self.find_and_standardise_date(flat_list, 'Date')
+        if date == 'ERROR':
+            return None
         contents = self.find_data_type_2(flat_list, 'Contents')
         self.append_data_to_dataframe(
             doc_ref=doc_ref,
@@ -135,31 +135,41 @@ class Scraper:
             date=date,
             contents=contents)
 
-    def find_and_standardise_year(self, flat_list, data_item='Date'):
+    def find_and_standardise_date(self, flat_list, data_item='Date'):
         first_draft_date = str(self.find_data_type_1(flat_list, data_item))
-        year_finder = re.compile('\d\d\d\d')
-        year = re.findall(year_finder, first_draft_date)
-        print(year)
+        year = self.find_and_standardise_year(first_draft_date)
+        if year == 'ERROR':
+            return 'ERROR'
+        print(f'year = {year}')
         month = self.find_and_standardise_month(first_draft_date)
-        for year in first_draft_date:
-            first_draft_date_without_years = first_draft_date.replace(year, '')
+        for y in year:
+            first_draft_date_without_years = first_draft_date.replace(y, '')
         day = self.find_and_standardise_day(first_draft_date_without_years)
-        
+
+    def find_and_standardise_year(self, first_draft_date):
+        year_finder = re.compile('\d\d\d\d')
+        year_list = re.findall(year_finder, first_draft_date)  
+        if len(year_list) > 1:
+            return 'ERROR' 
+        return year_list
 
         # YYYY-MM-DD
 
-    def find_and_standardise_month(self, data_item='Date'):
+    def find_and_standardise_month(self, first_draft_date):
+        print(f'first draft data coming in to find and standardise month {first_draft_date}')
         for month in MONTH_LIST:
-            if month in data_item:
-                print(month)
+            if month in first_draft_date:
+                print(f'month = {month}')
+            else:
+                return None
 
-    def find_and_standardise_day(self, data_item='Date'):
+    def find_and_standardise_day(self, first_draft_date):
         day_finder = re.compile('(\d\d|\d)(\s|[a-zA-Z])')
-        days = re.findall(day_finder, data_item)
+        days = re.findall(day_finder, first_draft_date)
         if days:
-            print([day[0] for day in days])
+            print('day = {}'.format([day[0] for day in days]))
         else:
-            print(None)
+            return None
 
     def find_data_type_1(self, flat_list, data_item):
         try:
@@ -200,29 +210,24 @@ class Scraper:
             'Contents': contents
         }, ignore_index=True)  
 
-    def run_full_search(self):
+    def run_full_search(self, skip=False):
         counter = 0
         while True:
             if counter == 3:
                 break
-            scraper.driver.find_element_by_link_text('Next').click()
-            scraper.wait_and_set_page_url()
-            scraper.get_page_data()
+            self.driver.find_element_by_link_text('Next').click()
+            sleep(10)
+            self.wait_and_set_page_url()
+            self.get_page_data()
             counter += 1
-
+        
 if __name__ == '__main__':
     scraper = Scraper()
     link = scraper.advanced_search_links(LANCASHIRE_ARCHIVE_WEBSITE, 'a', 'href', 'advanced')
     url = LANCASHIRE_ARCHIVE_WEBSITE + link
     selection = scraper.advanced_search_links(url, 'input', 'id', 'SearchText_AltRef')
     scraper.click_to_next_page(url, selection)
-    scraper.get_page_data()
+    # scraper.get_page_data()
     scraper.run_full_search()
     # print(scraper.dataframe)
-
-
-
-    
-    
-    
 

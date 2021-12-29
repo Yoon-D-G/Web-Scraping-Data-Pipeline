@@ -104,11 +104,11 @@ data = "20 Dec 1824 (1st grant), 8 Nov 1856 (2nd grant)"
 
 for year in year_finder(data):
     data = data.replace(year, '')
-
+    print(data)
 day_finder = re.compile('(\d\d|\d)(\s|[a-zA-Z])')
-day = re.findall(day_finder, data)
-if day:
-    print([x[0] for x in day])
+days = re.findall(day_finder, data)
+if days:
+    print([day[0] for day in days])
 else:
     print(None)
 
