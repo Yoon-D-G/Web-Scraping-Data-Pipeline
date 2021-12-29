@@ -1,8 +1,8 @@
-from pandas.core.frame import DataFrame
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -25,6 +25,7 @@ class Scraper:
             'Date',
             'Contents'
         ]) 
+        self.counter = 1
 
     def request_html(self, url):
         request = requests.get(url)
@@ -52,10 +53,13 @@ class Scraper:
         self.wait_and_set_page_url()
 
     def wait_and_set_page_url(self):
-        wait = WebDriverWait(self.driver, 10)
-        wait.until(EC.title_contains('Search Results'))
+        page_number = self.counter * 20
+        WebDriverWait(self.driver, 10).until(lambda x: x.find_element_by_xpath(
+            "//*[contains(text(), ' to {} of')]".format(page_number))
+        ) 
         url = self.driver.current_url
-        self.url = url  
+        self.url = url 
+        self.counter += 1 
 
     def get_all_page_links(self, url):
         for link in [link.get('onclick') for link in self.html_get(url).find_all('tr')]:
@@ -67,13 +71,9 @@ class Scraper:
             return LANCASHIRE_ARCHIVE_WEBSITE + link.lstrip("document.location='./") 
 
     def get_page_data(self):
-        # counter = 0
         for url in self.get_all_page_links(self.url):
-            # if counter == 1:
-            #     break
             data_page_html = self.html_get(url)
             self.get_table_from_html(data_page_html)
-            # counter += 1
 
     def get_table_from_html(self,data_page_html):
         table_data = data_page_html.find_all('tr')
@@ -184,10 +184,9 @@ if __name__ == '__main__':
     selection = scraper.advanced_search_links(url, 'input', 'id', 'SearchText_AltRef')
     scraper.click_to_next_page(url, selection)
     scraper.get_page_data()
-    print(scraper.dataframe)
     counter = 0
     while True:
-        if counter == 2:
+        if counter == 3:
             break
         scraper.driver.find_element_by_link_text('Next').click()
         scraper.wait_and_set_page_url()
