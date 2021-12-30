@@ -133,39 +133,43 @@ class Scraper:
             date=date,
             contents=contents)
 
-    def find_and_standardise_date(self, flat_list, data_item='Date'):
+    def find_and_standardise_date(self, flat_list, data_item):
         first_draft_date = str(self.find_data_type_1(flat_list, data_item))
         year = self.find_and_standardise_year(first_draft_date)
         if year == 'ERROR':
             return 'ERROR'
-        print(f'year = {year}')
         month = self.find_and_standardise_month(first_draft_date)
-        for y in year:
-            first_draft_date_without_years = first_draft_date.replace(y, '')
+        first_draft_date_without_years = first_draft_date.replace(year, '')
         day = self.find_and_standardise_day(first_draft_date_without_years)
+        return self.arrange_date_into_ISO_8601(day, month, year)
+
+    def arrange_date_into_ISO_8601(self, day, month, year):
+        if year and month and day:
+            return year + '-' + month + '-' + day
+        elif not month or not day:
+            return year
+        elif not year:
+            return 'NULL'
 
     def find_and_standardise_year(self, first_draft_date):
         year_finder = re.compile('\d\d\d\d')
         year_list = re.findall(year_finder, first_draft_date)  
-        if len(year_list) > 1:
+        if len(year_list) > 1 or not year_list:
             return 'ERROR' 
-        return year_list
-
-        # YYYY-MM-DD
+        if year_list:
+            return year_list[0]
 
     def find_and_standardise_month(self, first_draft_date):
-        print(f'first draft data coming in to find and standardise month {first_draft_date}')
         for month in MONTH_LIST:
             if month in first_draft_date:
-                month
-            else:
-                return None
+                return month
+        return None
 
     def find_and_standardise_day(self, first_draft_date):
         day_finder = re.compile('(\d\d|\d)(\s|[a-zA-Z])')
         days = re.findall(day_finder, first_draft_date)
         if days:
-            [day[0] for day in days]
+            return ['0' + day[0] if len(day[0]) == 1 else day[0] for day in days][0]
         else:
             return None
 
@@ -211,13 +215,18 @@ class Scraper:
     def run_full_search(self, skip=False):
         counter = 0
         while True:
-            if counter == 2:
+            if counter == 20:
                 break
             self.driver.find_element_by_link_text('Next').click()
             sleep(10)
             self.wait_and_get_page_html()
             self.get_page_data()
             counter += 1
+
+    def persist_dataframe(self):
+        with open('dataframe', 'a') as file:
+            dataframe_as_string = self.dataframe.to_string(header=False, index=False)
+            file.write(dataframe_as_string)
         
 if __name__ == '__main__':
     scraper = Scraper()
@@ -227,5 +236,6 @@ if __name__ == '__main__':
     scraper.click_to_next_page(url, selection)
     scraper.get_page_data()
     scraper.run_full_search()
-    # print(scraper.dataframe)
+    print(scraper.dataframe)
+    scraper.persist_dataframe()
 
