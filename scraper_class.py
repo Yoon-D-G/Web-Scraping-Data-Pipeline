@@ -10,6 +10,11 @@ import pickle
 
 LANCASHIRE_ARCHIVE_WEBSITE = 'https://archivecat.lancashire.gov.uk/calmview/'
 MONTH_LIST = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+MONTH_LIBRARY = {
+    'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 
+    'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08', 
+    'Sep':'09', 'Oct': '10', 'Nov': '11', 'Dec': '12'    
+}
 ORDINAL_ABBREVIATION_LIST = ['st', 'nd', 'rd', 'th'] 
 
 class Scraper:
@@ -17,10 +22,10 @@ class Scraper:
     def __init__(self):
         self.all_data = []
         self.dataframe = pd.DataFrame(columns=[
-            'Document Reference',
+            'Document_reference',
             'Title', 
-            "Testator's name",
-            'Occupation/status',
+            "Testators_name",
+            'Occupation_status',
             'Place',
             'Date',
             'Contents'
@@ -163,7 +168,7 @@ class Scraper:
     def find_and_standardise_month(self, first_draft_date):
         for month in MONTH_LIST:
             if month in first_draft_date:
-                return month
+                return MONTH_LIBRARY[month]
         return None
 
     def find_and_standardise_day(self, first_draft_date):
@@ -204,10 +209,10 @@ class Scraper:
         contents='NULL'
     ):
         self.dataframe = self.dataframe.append({
-            'Document Reference': doc_ref,
+            'Document_reference': doc_ref,
             'Title': title, 
-            "Testator's name": name,
-            'Occupation/status': occupation,
+            "Testators_name": name,
+            'Occupation_status': occupation,
             'Place': place,
             'Date': date,
             'Contents': contents

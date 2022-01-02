@@ -1,4 +1,3 @@
-from scraper_class import Scraper, LANCASHIRE_ARCHIVE_WEBSITE
 import pymysql
 import pandas as pd
 from sqlalchemy import create_engine
@@ -10,7 +9,7 @@ class Transfer_dataframe_to_mysql:
             self.dataframe = pd.read_pickle(file)
 
     def create_db_engine(self):
-        db_data = "mysql+pymysql://ewen:ABCeasyas123!@HOST:3306/Webscraper?charset=utf8mb4"
+        db_data = "mysql+pymysql://ewen_remote:ABCeasyas123!@192.168.1.50:3306/Webscraper?charset=utf8mb4"
         self.engine = create_engine(db_data)
 
     def create_connection_to_db(self):
@@ -41,6 +40,9 @@ class Transfer_dataframe_to_mysql:
             );""" 
         )
 
+    def upload_dataframe(self):
+        self.dataframe.to_sql('all_testators', self.engine, if_exists='append', index=False)
+
     def show_table(self):
         self.dbcursor.execute(
             """
@@ -63,6 +65,7 @@ if __name__ == '__main__':
     tdf.create_connection_to_db()
     tdf.create_cursor()
     tdf.create_table()
+    tdf.upload_dataframe()
     print(tdf.show_table())
     tdf.close_connection()
 
