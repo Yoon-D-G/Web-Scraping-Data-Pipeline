@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 import pandas as pd
 import re
 from time import sleep
+import pickle
 
 LANCASHIRE_ARCHIVE_WEBSITE = 'https://archivecat.lancashire.gov.uk/calmview/'
 MONTH_LIST = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -147,7 +148,7 @@ class Scraper:
         if year and month and day:
             return year + '-' + month + '-' + day
         elif not month or not day:
-            return year
+            return year + '-01-01'
         elif not year:
             return 'NULL'
 
@@ -215,7 +216,7 @@ class Scraper:
     def run_full_search(self, skip=False):
         counter = 0
         while True:
-            if counter == 20:
+            if counter == 2:
                 break
             self.driver.find_element_by_link_text('Next').click()
             sleep(10)
@@ -224,9 +225,11 @@ class Scraper:
             counter += 1
 
     def persist_dataframe(self):
-        with open('dataframe', 'a') as file:
-            dataframe_as_string = self.dataframe.to_string(header=False, index=False)
-            file.write(dataframe_as_string)
+        self.dataframe.to_pickle('pickled_dataframe.pkl')
+
+        # with open('dataframe', 'a') as file:
+        #     dataframe_as_string = self.dataframe.to_string(header=False, index=False)
+        #     file.write(dataframe_as_string)
         
 if __name__ == '__main__':
     scraper = Scraper()
