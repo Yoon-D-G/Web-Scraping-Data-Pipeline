@@ -40,6 +40,53 @@ class Transfer_dataframe_to_mysql:
             );""" 
         )
 
+    def create_3nf_title_table(self, table_name):
+        self.dbcursor.execute(
+            """
+            CREATE TABLE {tn}_table (
+                {tn}_id INT NOT NULL AUTO_INCREMENT, 
+                {tn} varchar (255), 
+                PRIMARY KEY ({tn}_id)
+            );
+            """.format(tn=table_name)
+        )
+
+    def create_3nf_main_table(self):
+        self.dbcursor.execute(
+            """
+            CREATE TABLE main_testator_table(
+            Document_reference varchar(100),
+            Testators_name varchar(100),
+            Date DATE,
+            Place_id INT,
+            Title_id INT,
+            Contents_id INT,
+            Occupation_id INT,
+            PRIMARY KEY (Document_reference),
+            CONSTRAINT Title_fk 
+            FOREIGN KEY (Title_id)
+                REFERENCES Title_table(Title_id)
+                ON DELETE SET NULL
+                ON UPDATE CASCADE,
+            CONSTRAINT Place_fk
+            FOREIGN KEY (Place_id)
+                REFERENCES Place_table(Place_id)
+                ON DELETE SET NULL
+                ON UPDATE CASCADE,
+            CONSTRAINT Contents_fk
+            FOREIGN KEY (Contents_id)
+                REFERENCES Contents_table(Contents_id)
+                ON DELETE SET NULL
+                ON UPDATE CASCADE,
+            CONSTRAINT Occupation_fk
+            FOREIGN KEY (Occupation_id)
+                REFERENCES Occupation_table(Occupation_id)
+                ON DELETE SET NULL
+                ON UPDATE CASCADE
+            )ENGINE=INNODB;
+            """
+        )
+
     def upload_dataframe(self):
         self.dataframe.to_sql('all_testators', self.engine, if_exists='append', index=False)
 
@@ -64,9 +111,9 @@ if __name__ == '__main__':
     tdf.create_db_engine()
     tdf.create_connection_to_db()
     tdf.create_cursor()
-    tdf.create_table()
-    tdf.upload_dataframe()
-    print(tdf.show_table())
+    for table_name in ['Title', 'Contents', 'Place', 'Occupation']:
+        tdf.create_3nf_title_table(table_name)
+    tdf.create_3nf_main_table()
     tdf.close_connection()
 
 
