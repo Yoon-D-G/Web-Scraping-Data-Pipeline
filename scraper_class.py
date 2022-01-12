@@ -231,13 +231,18 @@ class Scraper:
             sleep(10)
             self.wait_and_get_page_html()
             self.get_page_data()
-            if self.html.body.find(string=re.compile('{} of {}'.format(str(int(self.total_pages) - 20), self.total_pages))):
+            if self.current_page() == self.html.body.find(
+                string=re.compile('{} of {}'.format(str(int(self.total_pages) - 20), self.total_pages))):
                 break
             self.persist_dataframe()
+
+    def current_page(self):
+        return self.html.body.find(string=re.compile('.* to .* of'))
      
     def persist_dataframe(self):
         with open('dataframe_plain_text_trial.txt', 'a') as f:
             f.write(str(self.dataframe))
+            f.write(self.current_page())
         
 if __name__ == '__main__':
     scraper = Scraper()
