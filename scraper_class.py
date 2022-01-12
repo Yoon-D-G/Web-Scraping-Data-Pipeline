@@ -29,7 +29,8 @@ class Scraper:
             'Place',
             'Date',
             'Contents'
-        ]) 
+        ])
+        pd.options.display.max_columns = 999 
         self.counter = 1
         self.total_pages = None
 
@@ -235,6 +236,11 @@ class Scraper:
                 string=re.compile('{} of {}'.format(str(int(self.total_pages) - 20), self.total_pages))):
                 break
             self.persist_dataframe()
+            self.empty_dataframe()
+
+    def empty_dataframe(self):
+        list_data = range(self.dataframe.shape[0])
+        self.dataframe.drop(labels=list_data, axis=0, inplace=True)
 
     def current_page(self):
         return self.html.body.find(string=re.compile('.* to .* of'))
