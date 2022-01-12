@@ -226,10 +226,7 @@ class Scraper:
         }, ignore_index=True)  
 
     def run_full_search(self):
-        counter = 0
         while True:
-            if counter == 3:
-                break
             self.driver.find_element_by_link_text('Next').click()
             sleep(10)
             self.wait_and_get_page_html()
@@ -237,17 +234,10 @@ class Scraper:
             if self.html.body.find(string=re.compile('{} of {}'.format(str(int(self.total_pages) - 20), self.total_pages))):
                 break
             self.persist_dataframe()
-            counter += 1
-
+     
     def persist_dataframe(self):
         with open('dataframe_plain_text_trial.txt', 'a') as f:
             f.write(str(self.dataframe))
-
-        # self.dataframe.to_pickle('pickled_dataframe.pkl')
-
-        # with open('dataframe', 'a') as file:
-        #     dataframe_as_string = self.dataframe.to_string(header=False, index=False)
-        #     file.write(dataframe_as_string)
         
 if __name__ == '__main__':
     scraper = Scraper()
