@@ -31,6 +31,7 @@ class Scraper:
             'Contents'
         ]) 
         self.counter = 1
+        self.total_pages = None
 
     def request_html(self, url):
         request = requests.get(url)
@@ -61,9 +62,15 @@ class Scraper:
         page_number = self.counter * 20
         WebDriverWait(self.driver, 10).until(lambda x: x.find_element_by_xpath(
             "//*[contains(text(), 'to {} of')]".format(page_number))) 
-        url = self.driver.current_url
+        # url = self.driver.current_url
         self.html = BeautifulSoup(self.driver.page_source, 'html.parser')
+        if self.counter == 1:
+            self.find_total_number_of_pages()
         self.counter += 1 
+
+    def find_total_number_of_pages(self):
+        self.total_pages = self.html.body.find(string=re.compile('1 to 20 of'), recursive=True).split()[-1]
+        return self.total_pages
 
     def get_all_page_links(self):
         for link in [link.get('onclick') for link in self.html.find_all('tr')]:
@@ -218,19 +225,25 @@ class Scraper:
             'Contents': contents
         }, ignore_index=True)  
 
-    def run_full_search(self, skip=False):
+    def run_full_search(self):
         counter = 0
         while True:
-            if counter == 2:
+            if counter == 3:
                 break
             self.driver.find_element_by_link_text('Next').click()
             sleep(10)
             self.wait_and_get_page_html()
             self.get_page_data()
+            if self.html.body.find(string=re.compile('{} of {}'.format(str(int(self.total_pages) - 20), self.total_pages))):
+                break
+            self.persist_dataframe()
             counter += 1
 
     def persist_dataframe(self):
-        self.dataframe.to_pickle('pickled_dataframe.pkl')
+        with open('dataframe_plain_text_trial.txt', 'a') as f:
+            f.write(str(self.dataframe))
+
+        # self.dataframe.to_pickle('pickled_dataframe.pkl')
 
         # with open('dataframe', 'a') as file:
         #     dataframe_as_string = self.dataframe.to_string(header=False, index=False)
@@ -244,6 +257,6 @@ if __name__ == '__main__':
     scraper.click_to_next_page(url, selection)
     scraper.get_page_data()
     scraper.run_full_search()
-    print(scraper.dataframe)
-    scraper.persist_dataframe()
+
+
 
